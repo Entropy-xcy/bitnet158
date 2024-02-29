@@ -3,8 +3,10 @@ import torch.nn as nn
 
 
 class BitLinear(nn.Linear):
-    def __init__(self, in_features, out_features, bias=True, num_groups=1):
+    def __init__(self, in_features, out_features, bias=True, dtype=None, num_groups=1):
         super(BitLinear, self).__init__(in_features, out_features, bias)
+        self.dtype = dtype if dtype is not None else torch.bfloat16
+        # print(f"Using {self.dtype} for BitLinear {dtype}")
         self.num_groups = num_groups
         self.eps = 1e-5
 
@@ -27,7 +29,7 @@ class BitLinear(nn.Linear):
 
     def dequantize_weights(self):
         # Convert quantized_weights back to bfloat16 and compute alpha for the weights
-        bfloat16_weights = self.quantized_weights.to(torch.bfloat16)
+        bfloat16_weights = self.quantized_weights.to(self.dtype)
         alpha = bfloat16_weights.mean()
         return bfloat16_weights * alpha
 
